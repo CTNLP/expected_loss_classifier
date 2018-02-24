@@ -2,6 +2,8 @@ package de.uni_saarland.coli.expected_loss_classifier;
 
 import de.uni_saarland.coli.util.ArrayMath;
 
+import java.util.Arrays;
+
 public class ExpectedLossClassifier {
 
     /**
@@ -25,7 +27,112 @@ public class ExpectedLossClassifier {
         }
     }
 
-    // TODO: tools for optimization and initialization
+    /**
+     *
+     * @param layer
+     * @param output
+     * @param weight
+     * @param value
+     */
+    public void setParameter(int layer, int output, int weight, double value) {
+        this.weights[layer][output][weight] = value;
+    }
+
+    /**
+     *
+     * @param layer
+     * @param output
+     * @param weight
+     * @param value
+     */
+    public void addValue(int layer, int output, int weight, double value) {
+        this.weights[layer][output][weight] += value;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public int getNumberOfLayers() {
+        return this.weights.length;
+    }
+
+    /**
+     *
+     * @param layer
+     * @return
+     */
+    public int getNumberOfOutputs(int layer) {
+        return this.weights[layer].length;
+    }
+
+    /**
+     *
+     * @param layer
+     * @param output
+     * @return
+     */
+    public int getNumberOfWeights(int layer, int output) {
+        return this.weights[layer][output].length;
+    }
+
+    /**
+     *
+     * @param inputs
+     * @param losses
+     * @return
+     */
+    public double[][][] gradient(double[] inputs, double[] losses) {
+        double[][] outputs = this.compute(inputs);
+
+        return this.gradient(inputs,losses,outputs);
+    }
+
+    /**
+     *
+     * @param inputs
+     * @param losses
+     * @param outputs
+     * @return
+     */
+    private double[][][] gradient(double[] inputs, double[] losses, double[][] outputs) {
+        double[][][] parameterGrads = new double[outputs.length][][];
+        double[][] nonLinGrads = new double[outputs.length][];
+
+        for(int layer=outputs.length-1;layer>=0;--layer) {
+                double[] multipliers = (layer+1 == outputs.length) ? losses : nonLinGrads[layer+1];
+                double[] ins = (layer==0) ? inputs : outputs[layer-1];
+
+                double[][] paraGrads = new double[outputs[layer].length][];
+                parameterGrads[layer] = paraGrads;
+
+                double[] nonLGrads = new double[ins.length];
+                nonLinGrads[layer] = nonLGrads;
+
+
+                for(int cell=0;cell < paraGrads.length;++cell) {
+                    double[] local = new double[weights[layer][cell].length];
+                    if(layer+1 != outputs.length && multipliers[cell] <= 0) {
+                        Arrays.fill(local,0.0);
+                        continue;
+                    }
+
+                    for(int i=0;i<local.length;++i) {
+                        if(layer+1 != outputs.length) {
+                            double val = multipliers[cell]*inputs[i];
+
+                            local[i] = val;
+                            nonLGrads[i] += val;
+                        } else {
+                            // TODO softmax gradient
+                        }
+                    }
+                }
+
+        }
+
+        return parameterGrads;
+    }
 
     /**
      *
@@ -78,11 +185,7 @@ public class ExpectedLossClassifier {
      * @return
      */
     public int  chooseOne(double[] input) {
-        double[] choices = this.computeProbabilities(input);
-
-        int best = ArrayMath.argmax(choices);
-
-        return best;
+        return ArrayMath.argmax(this.computeProbabilities(input));
     }
 
     /**
