@@ -1,8 +1,11 @@
 package de.uni_saarland.coli.expected_loss_classifier;
 
+import de.uni_saarland.coli.learning_rates.Linear;
 import de.uni_saarland.coli.util.ArrayMath;
 
 import java.util.Arrays;
+import java.util.Iterator;
+import javafx.util.Pair;
 
 public class ExpectedLossClassifier {
 
@@ -23,7 +26,7 @@ public class ExpectedLossClassifier {
             int inDim = i == 0 ? inputDimensions : resultDimensions[i - 1];
             int outDim = resultDimensions[i];
 
-            double[][] layerWeights = new double[outDim][inDim];
+            this.weights[i] = new double[outDim][inDim];
         }
     }
 
@@ -144,6 +147,32 @@ public class ExpectedLossClassifier {
 
     /**
      *
+     * @param inputsAndLosses
+     * @param rate
+     */
+    public void train(Iterator<Pair<double[], double[]>[]> inputsAndLosses, Linear rate) {
+        while (inputsAndLosses.hasNext()) {
+            Pair<double[], double[]>[] examples = inputsAndLosses.next();
+
+            double[][][] gradient = null;
+            for (Pair<double[], double[]> example : examples) {
+                gradient = sum(gradient, this.gradient(example.getKey(), example.getValue()));
+            }
+
+            for (int i = 0; i < this.weights.length; ++i) {
+                for (int j = 0; j < this.weights[i].length; ++j) {
+                    for (int k = 0; k < this.weights[i][j].length; ++k) {
+                        weights[i][j][k] -= rate.getRate(i, j, k) * gradient[i][j][k];
+                    }
+                }
+            }
+
+            rate.nextStep();
+        }
+    }
+
+    /**
+     *
      * @param input
      * @return
      */
@@ -208,6 +237,20 @@ public class ExpectedLossClassifier {
         }
 
         return amount;
+    }
+
+    /**
+     *
+     * @param gradient
+     * @param newGradient
+     * @return
+     */
+    private double[][][] sum(double[][][] gradient, double[][][] newGradient) {
+        if (gradient == null) {
+            return newGradient;
+        }
+
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
 }
