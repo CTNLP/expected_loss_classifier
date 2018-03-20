@@ -60,4 +60,20 @@ public class ArrayMath {
         return expSum(inputs,0);
     }
 
+    /**
+     * 
+     * @param v
+     * @param w
+     * @return 
+     */
+    public static double innerProduct(double[] v, double[] w) {
+        double sum = 0.0;
+        
+        for(int i=0;i<v.length && i < w.length;++i) {
+            sum += v[i]*w[i];
+        }
+        
+        return sum;
+    }
+
 }

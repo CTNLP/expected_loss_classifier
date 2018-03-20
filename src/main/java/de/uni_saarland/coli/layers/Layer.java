@@ -1,7 +1,13 @@
 package de.uni_saarland.coli.layers;
 
 import de.uni_saarland.coli.learning_rates.LearningRate;
+import java.util.function.DoubleSupplier;
+import java.util.function.IntFunction;
 
+/**
+ * 
+ * @author christoph_teichmann
+ */
 public abstract class Layer {
 
     /**
@@ -71,6 +77,17 @@ public abstract class Layer {
     }
 
     /**
+     * 
+     */
+    public void clearGradient() {
+        clearGradientLocal();
+        
+        if(previous != null) {
+            previous.clearGradient();
+        }
+    }
+    
+    /**
      *
      * @param losses
      * @param localInputs
@@ -89,6 +106,42 @@ public abstract class Layer {
      *
      * @param rate
      */
-    public abstract void step(LearningRate rate);
+    public void step(LearningRate rate) {
+       this.stepLocal(this.id,rate);
+       
+       if(this.previous != null) {
+           this.previous.step(rate);
+       }        
+    }
+    
+    /**
+     * 
+     * @param initializers 
+     */
+    public void initialize(IntFunction<DoubleSupplier> initializers) {
+        this.initializeLocal(initializers.apply(this.id));
+        
+        if(this.previous != null) {
+            this.previous.initialize(initializers);
+        }
+    }
+
+    /**
+     * 
+     */
+    protected abstract void clearGradientLocal();
+
+    /**
+     * 
+     * @param id
+     * @param rate 
+     */
+    protected abstract void stepLocal(int id, LearningRate rate);
+    
+    /**
+     * 
+     * @param apply 
+     */
+    protected abstract void initializeLocal(DoubleSupplier apply);
 
 }
