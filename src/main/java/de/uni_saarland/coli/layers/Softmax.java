@@ -4,6 +4,10 @@ import de.uni_saarland.coli.learning_rates.LearningRate;
 import de.uni_saarland.coli.util.ArrayMath;
 import java.util.function.DoubleSupplier;
 
+/**
+ * 
+ * @author christoph_teichmann
+ */
 public class Softmax extends Layer {
 
     /**
@@ -42,7 +46,7 @@ public class Softmax extends Layer {
         if(losses.length != localInputs.length) {
             throw new IllegalArgumentException("Input output array length mismatch.");
         }
-        double[] probs = this.applyLayer(losses);
+        double[] probs = this.applyLayer(localInputs);
         
         double[] backgradient = new double[localInputs.length];
         
